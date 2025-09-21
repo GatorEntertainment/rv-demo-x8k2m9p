@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harbortown RV Resort - Guest App</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3498db">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Harbortown RV">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .screen {
+            display: none;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .welcome-screen {
+            display: block;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 25px 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #3498db;
+            box-shadow: 0 8px 25px rgba(52,152,219,0.2);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .feature-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .site-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .site-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #ecf0f1;
+        }
+
+        .site-card.available {
+            border-color: #27ae60;
+        }
+
+        .site-card.occupied {
+            border-color: #e74c3c;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .site-card.selected {
+            border-color: #3498db;
+            background: #ebf3fd;
+        }
+
+        .site-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .site-type {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin: 5px 0;
+        }
+
+        .site-price {
+            font-size: 14px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .date-picker {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .booking-summary {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52,152,219,0.3);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+
+        .event-date {
+            font-size: 14px;
+            color: #3498db;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .event-time {
+            font-size: 16px;
+            color: #e67e22;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .event-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .event-description {
+            color: #7f8c8d;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message-card {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #f39c12;
+        }
+
+        .message-header {
+            font-weight: bold;
+            color: #856404;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .message-content {
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 15px;
+            background: #f8f9fa;
+            margin: 15px 0;
+        }
+
+        .chat-message {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin: 8px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .chat-message.guest {
+            background: #3498db;
+            color: white;
+            margin-left: 20px;
+        }
+
+        .chat-message.staff {
+            background: white;
+            margin-right: 20px;
+            border: 1px solid #ecf0f1;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+        }
+
+        .chat-input button {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            background: white;
+            border-top: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+            min-width: 60px;
+        }
+
+        .nav-item:hover {
+            background: #f8f9fa;
+        }
+
+        .nav-item.active {
+            background: #ebf3fd;
+            color: #3498db;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .nav-text {
+            font-size: 11px;
+            color: #7f8c8d;
+        }
+
+        .nav-item.active .nav-text {
+            color: #3498db;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-available {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .badge-occupied {
+            background: #fadbd8;
+            color: #e74c3c;
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 12px;
+            height: 12px;
+            background: #e74c3c;
+            border-radius: 50%;
+            font-size: 8px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .payment-options {
+            margin: 20px 0;
+        }
+
+        .payment-method {
+            background: white;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .payment-method:hover {
+            border-color: #3498db;
+        }
+
+        .payment-method.selected {
+            border-color: #3498db;
+            background: #ebf3fd;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 20px 0 15px 0;
+        }
+
+        .weather-widget {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div id="welcome" class="welcome-screen">
+            <div class="header">
+                <div class="logo">🏕️</div>
+                <h1>Harbortown RV Resort</h1>
+                <p>Monroe, MI • Your Lake Erie RV Experience</p>
+            </div>
+            
+            <h2 style="margin: 20px 0; color: #2c3e50;">Welcome to Your Resort Experience</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card" onclick="showScreen('booking')">
+                    <span class="feature-icon">📅</span>
+                    <div class="feature-title">Book Your Stay</div>
+                </div>
+                <div class="feature-card" onclick="showScreen('events')">
+                    <span class="feature-icon">🎉</span>
+                    <div class="feature-title">Events</div>
+                </div>
+                <div class="feature-card" onclick="showScreen('chat')">
+                    <span class="feature-icon">💬</span>
+                    <div class="feature-title">Contact Staff</div>
+                </div>
+                <div class="feature-card" onclick="showScreen('amenities')">
+                    <span class="feature-icon">🏊</span>
+                    <div class="feature-title">Amenities</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Screen -->
+        <div id="booking" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('welcome')">←</button>
+                <h2>Book Your Stay</h2>
+                <p>Harbortown RV Resort • Monroe, MI</p>
+            </div>
+
+            <div class="section-title">Select Dates</div>
+            <input type="date" class="date-picker" id="checkin" value="2024-09-20">
+            <input type="date" class="date-picker" id="checkout" value="2024-09-22">
+
+            <div class="section-title">Available Sites</div>
+            <div class="site-grid">
+                <div class="site-card available" onclick="selectSite(this, 'A-15', '50 Amp Lake View', 65)">
+                    <div class="site-number">A-15</div>
+                    <div class="site-type">50 Amp Lake View</div>
+                    <div class="site-price">$65/night</div>
+                    <span class="status-badge badge-available">Available</span>
+                </div>
+                <div class="site-card available" onclick="selectSite(this, 'B-22', '30 Amp Standard', 45)">
+                    <div class="site-number">B-22</div>
+                    <div class="site-type">30 Amp Standard</div>
+                    <div class="site-price">$45/night</div>
+                    <span class="status-badge badge-available">Available</span>
+                </div>
+                <div class="site-card occupied">
+                    <div class="site-number">A-12</div>
+                    <div class="site-type">50 Amp Lake View</div>
+                    <div class="site-price">$65/night</div>
+                    <span class="status-badge badge-occupied">Occupied</span>
+                </div>
+                <div class="site-card available" onclick="selectSite(this, 'C-08', '50 Amp Premium', 75)">
+                    <div class="site-number">C-08</div>
+                    <div class="site-type">50 Amp Premium</div>
+                    <div class="site-price">$75/night</div>
+                    <span class="status-badge badge-available">Available</span>
+                </div>
+                <div class="site-card available" onclick="selectSite(this, 'D-14', '30 Amp Standard', 45)">
+                    <div class="site-number">D-14</div>
+                    <div class="site-type">30 Amp Standard</div>
+                    <div class="site-price">$45/night</div>
+                    <span class="status-badge badge-available">Available</span>
+                </div>
+                <div class="site-card occupied">
+                    <div class="site-number">B-18</div>
+                    <div class="site-type">50 Amp Lake View</div>
+                    <div class="site-price">$65/night</div>
+                    <span class="status-badge badge-occupied">Occupied</span>
+                </div>
+            </div>
+
+            <div id="booking-summary" class="booking-summary" style="display: none;">
+                <h3>Booking Summary</h3>
+                <div id="summary-details"></div>
+                
+                <div class="section-title">Payment Options</div>
+                <div class="payment-options">
+                    <div class="payment-method" onclick="selectPayment(this, 'card')">
+                        <strong>💳 Pay with Card</strong>
+                        <div style="font-size: 14px; color: #7f8c8d;">Secure online payment</div>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment(this, 'person')">
+                        <strong>🏢 Pay at Check-in</strong>
+                        <div style="font-size: 14px; color: #7f8c8d;">Cash, card, or check accepted</div>
+                    </div>
+                </div>
+                
+                <button class="btn-primary" onclick="completeBooking()">Complete Booking</button>
+            </div>
+        </div>
+
+        <!-- Events Screen -->
+        <div id="events" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('welcome')">←</button>
+                <h2>Events & Activities</h2>
+                <p>Harbortown RV Resort • Monroe, MI</p>
+            </div>
+
+            <div class="weather-widget">
+                <h3>Current Time & Weather</h3>
+                <p id="currentDateTime">🕐 Loading time...</p>
+                <p>🌤️ 76°F • Partly Cloudy</p>
+                <p>Perfect weather for outdoor activities!</p>
+            </div>
+
+            <div class="section-title">Staff Announcements</div>
+            <div class="message-card">
+                <div class="message-header">📢 Important Notice - Trick or Treating Event</div>
+                <div class="message-content">
+                    Please remember: 5:30 to 6:30 PM - NO WHEELS on the grounds! No driving any motorized vehicles when the kids are trick or treating. Thank you for keeping our little ones safe! 🎃
+                </div>
+            </div>
+
+            <div class="section-title">Upcoming Events</div>
+            
+            <div class="event-card">
+                <div class="event-date">Saturday, September 21st</div>
+                <div class="event-time">🕐 5:30 PM - 6:30 PM</div>
+                <div class="event-title">🎃 Trick or Treating</div>
+                <div class="event-description">
+                    Bring the kids in costume for a fun evening of trick or treating around the campground! Staff will have treats at various locations. Remember - no vehicles during this time for safety.
+                </div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-date">Sunday, September 22nd</div>
+                <div class="event-time">🕐 2:00 PM - 4:00 PM</div>
+                <div class="event-title">🏎️ Go-Kart Races</div>
+                <div class="event-description">
+                    Family-friendly go-kart racing on our track! All ages welcome. Registration starts at 1:30 PM at the track. Prizes for winners in each age group!
+                </div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-date">Monday, September 23rd</div>
+                <div class="event-time">🕐 10:00 AM - 12:00 PM</div>
+                <div class="event-title">🎨 Arts & Crafts</div>
+                <div class="event-description">
+                    Join us at the clubhouse for fall-themed arts and crafts! All supplies provided. Great for kids and adults. Make memories to take home!
+                </div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-date">Tuesday, September 24th</div>
+                <div class="event-time">🕐 7:00 PM - 9:00 PM</div>
+                <div class="event-title">🔥 Campfire Stories</div>
+                <div class="event-description">
+                    Gather around the fire pit for stories, songs, and s'mores! Bring your chairs and get ready for a cozy evening by Lake Erie. S'mores supplies provided.
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Screen -->
+        <div id="chat" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('welcome')">←</button>
+                <h2>Contact Staff</h2>
+                <p>Harbortown RV Resort • Monroe, MI</p>
+            </div>
+
+            <div class="chat-container" id="chatContainer">
+                <div class="chat-message staff">
+                    <strong>Harbortown Staff:</strong><br>
+                    Welcome to Harbortown RV Resort in Monroe, MI! How can we help you today?
+                </div>
+                <div class="chat-message guest">
+                    Hi! We just checked into site B-15. Could we get some extra towels please?
+                </div>
+                <div class="chat-message staff">
+                    <strong>Housekeeping:</strong><br>
+                    Absolutely! I'll bring extra towels to site B-15 within the next 15 minutes. Anything else you need?
+                </div>
+                <div class="chat-message guest">
+                    That's perfect, thank you! Also, what time does the pool close tonight?
+                </div>
+                <div class="chat-message staff">
+                    <strong>Front Desk:</strong><br>
+                    The pool is open until 10 PM tonight. Current water temperature is 82°F - perfect for an evening swim! 🏊‍♂️
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <input type="text" placeholder="Type your message..." id="messageInput" onkeypress="checkEnter(event)">
+                <button onclick="sendMessage()">📤</button>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                <h4>Quick Requests:</h4>
+                <button class="btn-secondary" onclick="quickMessage('Could we get extra towels at our site please?')">🏠 Extra Towels</button>
+                <button class="btn-secondary" onclick="quickMessage('What time does the camp store close?')">🏪 Store Hours</button>
+                <button class="btn-secondary" onclick="quickMessage('Is there firewood available for purchase?')">🔥 Firewood</button>
+                <button class="btn-secondary" onclick="quickMessage('We have a maintenance issue at our site')">🔧 Maintenance</button>
+            </div>
+        </div>
+
+        <!-- Amenities Screen -->
+        <div id="amenities" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('welcome')">←</button>
+                <h2>Resort Amenities</h2>
+                <p>Harbortown RV Resort • Monroe, MI</p>
+            </div>
+
+            <div class="event-card">
+                <div class="event-title">🏊 Swimming Pool</div>
+                <div class="event-description">
+                    <strong>Status:</strong> <span style="color: #27ae60;">Open</span><br>
+                    <strong>Hours:</strong> 8:00 AM - 10:00 PM<br>
+                    <strong>Temperature:</strong> 82°F<br>
+                    Heated outdoor pool with lounge area. Lifeguard on duty during peak hours.
+                </div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-title">🚿 Shower Facilities</div>
+                <div class="event-description">
+                    <strong>Status:</strong> <span style="color: #27ae60;">Open 24/7</span><br>
+                    <strong>Facilities:</strong> 8 private shower stalls<br>
+                    <strong>Features:</strong> Hot water, handicap accessible<br>
+                    Clean, modern facilities with plenty of hot water available.
+                </div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-title">🎮 Arcade Center</div>
+                <div class="event-description">
+                    <strong>Status:</strong> <span style="color: #27ae60;">Open</span><br>
+                    <strong>Hours:</strong> 10:00 AM - 11:00 PM<br>
+                    <strong>Games:</strong> 12 classic arcade games<br>
+                    Air hockey, prize counter, and comfortable seating area.
+                </div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-title">⚾ Batting Cages</div>
+                <div class="event-description">
+                    <strong>Status:</strong> <span style="color: #27ae60;">Both cages operational</span><br>
+                    <strong>Options:</strong> Slow pitch (20-40 mph), Fast pitch (41-70 mph)<br>
+                    <strong>Equipment:</strong> Bats and helmets provided<br>
+                    Perfect for practicing your swing with the family!
+                </div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-title">🏎️ Go-Kart Track</div>
+                <div class="event-description">
+                    <strong>Status:</strong> <span style="color: #27ae60;">Open</span><br>
+                    <strong>Hours:</strong> 10:00 AM - 8:00 PM<br>
+                    <strong>Track:</strong> Family-friendly course<br>
+                    Safe, fun racing for all ages. Regular tournaments and special events!
+                </div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-title">⛳ Mini Golf</div>
+                <div class="event-description">
+                    <strong>Status:</strong> <span style="color: #27ae60;">Open</span><br>
+                    <strong>Course:</strong> 18-hole championship course<br>
+                    <strong>Hours:</strong> 9:00 AM - 9:00 PM<br>
+                    Challenging and fun course with Lake Erie views!
+                </div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-title">🏪 Camp Store</div>
+                <div class="event-description">
+                    <strong>Status:</strong> <span style="color: #27ae60;">Open</span><br>
+                    <strong>Hours:</strong> 7:00 AM - 9:00 PM<br>
+                    <strong>Items:</strong> Camping supplies, snacks, ice, firewood<br>
+                    Everything you need for your stay, plus local souvenirs!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showScreen('welcome')">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-text">Home</div>
+        </div>
+        <div class="nav-item" onclick="showScreen('booking')">
+            <div class="nav-icon">📅</div>
+            <div class="nav-text">Booking</div>
+        </div>
+        <div class="nav-item" onclick="showScreen('events')">
+            <div class="nav-icon">🎉</div>
+            <div class="nav-text">Events</div>
+            <div class="notification-dot">2</div>
+        </div>
+        <div class="nav-item" onclick="showScreen('chat')">
+            <div class="nav-icon">💬</div>
+            <div class="nav-text">Chat</div>
+        </div>
+        <div class="nav-item" onclick="showScreen('amenities')">
+            <div class="nav-icon">🏊</div>
+            <div class="nav-text">Amenities</div>
+        </div>
+    </div>
+
+    <script>
+        let selectedSite = null;
+        let selectedPayment = null;
+
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen, .welcome-screen').forEach(screen => {
+                screen.classList.remove('active');
+                if (screenId === 'welcome') {
+                    screen.style.display = screen.id === 'welcome' ? 'block' : 'none';
+                } else {
+                    screen.style.display = screen.id === screenId ? 'block' : 'none';
+                }
+            });
+
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            
+            const navMap = {
+                'welcome': 0,
+                'booking': 1,
+                'events': 2,
+                'chat': 3,
+                'amenities': 4
+            };
+            
+            if (navMap[screenId] !== undefined) {
+                document.querySelectorAll('.nav-item')[navMap[screenId]].classList.add('active');
+            }
+        }
+
+        function selectSite(element, siteNumber, siteType, price) {
+            // Remove previous selection
+            document.querySelectorAll('.site-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Select new site
+            element.classList.add('selected');
+            selectedSite = { siteNumber, siteType, price };
+            
+            // Show booking summary
+            const checkin = document.getElementById('checkin').value;
+            const checkout = document.getElementById('checkout').value;
+            
+            if (checkin && checkout) {
+                const nights = Math.ceil((new Date(checkout) - new Date(checkin)) / (1000 * 60 * 60 * 24));
+                const total = nights * price;
+                
+                document.getElementById('summary-details').innerHTML = `
+                    <p><strong>Site:</strong> ${siteNumber} (${siteType})</p>
+                    <p><strong>Check-in:</strong> ${new Date(checkin).toLocaleDateString()}</p>
+                    <p><strong>Check-out:</strong> ${new Date(checkout).toLocaleDateString()}</p>
+                    <p><strong>Nights:</strong> ${nights}</p>
+                    <p><strong>Rate:</strong> ${price}/night</p>
+                    <hr style="margin: 10px 0;">
+                    <p><strong>Total:</strong> ${total}</p>
+                `;
+                
+                document.getElementById('booking-summary').style.display = 'block';
+            }
+        }
+
+        function selectPayment(element, method) {
+            document.querySelectorAll('.payment-method').forEach(pm => {
+                pm.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            selectedPayment = method;
+        }
+
+        function completeBooking() {
+            if (!selectedSite) {
+                alert('Please select a site first.');
+                return;
+            }
+            
+            if (!selectedPayment) {
+                alert('Please select a payment method.');
+                return;
+            }
+            
+            const checkin = document.getElementById('checkin').value;
+            const checkout = document.getElementById('checkout').value;
+            const nights = Math.ceil((new Date(checkout) - new Date(checkin)) / (1000 * 60 * 60 * 24));
+            const total = nights * selectedSite.price;
+            
+            if (selectedPayment === 'card') {
+                alert(`🎉 BOOKING CONFIRMED!\n\nSite: ${selectedSite.siteNumber}\nTotal: ${total}\nPayment: Card processed successfully\n\nConfirmation #: HRV-${Math.random().toString(36).substr(2, 9).toUpperCase()}\n\nWelcome to Harbortown RV Resort!`);
+            } else {
+                alert(`📋 RESERVATION CONFIRMED!\n\nSite: ${selectedSite.siteNumber}\nTotal: ${total}\nPayment: Due at check-in\n\nReservation #: HRV-${Math.random().toString(36).substr(2, 9).toUpperCase()}\n\nSee you at check-in!`);
+            }
+            
+            // Reset booking
+            selectedSite = null;
+            selectedPayment = null;
+            document.getElementById('booking-summary').style.display = 'none';
+            document.querySelectorAll('.site-card').forEach(card => card.classList.remove('selected'));
+            document.querySelectorAll('.payment-method').forEach(pm => pm.classList.remove('selected'));
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                const chatContainer = document.getElementById('chatContainer');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'chat-message guest';
+                messageDiv.innerHTML = message;
+                chatContainer.appendChild(messageDiv);
+                
+                // Auto-scroll to bottom
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Clear input
+                input.value = '';
+                
+                // Simulate staff response
+                setTimeout(() => {
+                    const responseDiv = document.createElement('div');
+                    responseDiv.className = 'chat-message staff';
+                    responseDiv.innerHTML = getStaffResponse(message);
+                    chatContainer.appendChild(responseDiv);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 1500);
+            }
+        }
+
+        function quickMessage(message) {
+            document.getElementById('messageInput').value = message;
+            sendMessage();
+        }
+
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function getStaffResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            if (lowerMessage.includes('towel')) {
+                return '<strong>Housekeeping:</strong><br>I\'ll bring fresh towels to your site within 15 minutes. Thanks for letting us know!';
+            } else if (lowerMessage.includes('pool')) {
+                return '<strong>Pool Staff:</strong><br>The pool is open until 10 PM tonight. Current temperature is 82°F. Enjoy your swim! 🏊‍♂️';
+            } else if (lowerMessage.includes('store') || lowerMessage.includes('hours')) {
+                return '<strong>Front Desk:</strong><br>Our camp store is open 7 AM to 9 PM daily. We have snacks, ice, firewood, and camping supplies!';
+            } else if (lowerMessage.includes('firewood')) {
+                return '<strong>Camp Store:</strong><br>Yes! We have seasoned firewood bundles for $8 each. Available at the camp store or we can deliver to your site for $2 extra.';
+            } else if (lowerMessage.includes('maintenance') || lowerMessage.includes('problem')) {
+                return '<strong>Maintenance:</strong><br>I\'ll be right over to check that out for you. Can you give me your site number? We\'ll have it fixed quickly!';
+            } else if (lowerMessage.includes('wifi') || lowerMessage.includes('internet')) {
+                return '<strong>Tech Support:</strong><br>WiFi password is "LakeErie2024". If you\'re having connection issues, try connecting closer to the clubhouse. Let me know if you need more help!';
+            } else if (lowerMessage.includes('checkout')) {
+                return '<strong>Front Desk:</strong><br>Checkout time is 11 AM. You can drop your key in the drop box at the office if we\'re not open yet. Safe travels!';
+            } else {
+                return '<strong>Resort Staff:</strong><br>Thanks for reaching out! I\'ll look into that for you and get back to you shortly. Is there anything else I can help with?';
+            }
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            showScreen('welcome');
+            
+            // Set default dates (today and tomorrow)
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            document.getElementById('checkin').value = today.toISOString().split('T')[0];
+            document.getElementById('checkout').value = tomorrow.toISOString().split('T')[0];
+        });
+
+        // Simulate real-time updates
+        setInterval(() => {
+            const eventNotification = document.querySelector('.nav-item .notification-dot');
+            if (eventNotification && Math.random() > 0.95) {
+                const currentCount = parseInt(eventNotification.textContent) || 2;
+                if (currentCount < 5) {
+                    eventNotification.textContent = currentCount + 1;
+                }
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
